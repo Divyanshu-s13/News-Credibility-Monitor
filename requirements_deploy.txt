@@ -1,0 +1,11 @@
+# -------------------------------------------------------
+# Production / deployment requirements
+# Use this file for Streamlit Community Cloud or HF Spaces
+# -------------------------------------------------------
+streamlit>=1.42.0
+scikit-learn>=1.6.1
+pandas>=2.2.3
+nltk>=3.9.1
+joblib>=1.5.0
+matplotlib>=3.9.0
+numpy>=1.26.0
