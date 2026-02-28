@@ -10,7 +10,7 @@ __pycache__/
 # Data and Models (Large Files)
 data/interim/
 data/processed/
-data/raw/*.csv
+# data/raw/*.csv - Now tracked with Git LFS
 
 # Jupyter Notebook Checkpoints
 .ipynb_checkpoints/
