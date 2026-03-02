@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import json
 
@@ -135,18 +136,7 @@ st.markdown(
     section[data-testid="stSidebar"] .stMarkdown h2 {
         font-size: 1.1rem !important;
     }
-    .roadmap-badge {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-left: 4px;
-    }
-    .badge-active  { background: #22c55e25; color: #22c55e; border: 1px solid #22c55e50; }
-    .badge-upcoming { background: #8b5cf625; color: #a78bfa; border: 1px solid #a78bfa50; }
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -193,28 +183,64 @@ def scrape_article(url: str) -> str:
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/120.0.0.0 Safari/537.36"
-            )
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
         }
-        resp = requests.get(url.strip(), headers=headers, timeout=10)
+        resp = requests.get(url.strip(), headers=headers, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        for tag in soup(["script", "style", "nav", "header", "footer", "aside", "form"]):
+        # Remove non-content elements
+        for tag in soup(["script", "style", "nav", "header", "footer",
+                         "aside", "form", "iframe", "noscript"]):
             tag.decompose()
 
+        paragraphs = []
+
+        # Strategy 1: Look for <article> tag
         article = soup.find("article")
         if article:
             paragraphs = article.find_all("p")
-        else:
+
+        # Strategy 2: Common news-site content containers
+        if not paragraphs:
+            content_selectors = [
+                "div.article-body", "div.story-body", "div.article-content",
+                "div.post-content", "div.entry-content", "div.article__body",
+                "div.story-content", "div.content-body", "div.article-text",
+                "section.article-body", "div[itemprop='articleBody']",
+                "div.caas-body",  # Yahoo News
+                "div.ssrcss-11r1t4e-RichTextComponentWrapper",  # BBC
+            ]
+            for selector in content_selectors:
+                container = soup.select_one(selector)
+                if container:
+                    paragraphs = container.find_all("p")
+                    if paragraphs:
+                        break
+
+        # Strategy 3: Fall back to all <p> tags
+        if not paragraphs:
             paragraphs = soup.find_all("p")
 
+        # Join paragraph text — lower threshold to capture shorter paragraphs
         text = " ".join(
             p.get_text(strip=True)
             for p in paragraphs
-            if len(p.get_text(strip=True)) > 40
+            if len(p.get_text(strip=True)) > 20
         )
+
+        # Strategy 4: If still empty, try extracting visible text from body
+        if not text:
+            body = soup.find("body")
+            if body:
+                text = body.get_text(separator=" ", strip=True)
+                # Basic cleanup of extra whitespace
+                text = re.sub(r'\s+', ' ', text).strip()
+
         return text if text else ""
-    except Exception:
+    except Exception as e:
         return ""
 
 
@@ -243,35 +269,7 @@ with st.sidebar:
     st.caption("GenAI Capstone · Milestone 1")
     st.markdown("---")
 
-    # ── Project Roadmap ──
-    st.markdown("### 🗺️ Project Roadmap")
 
-    st.markdown(
-        '**Milestone 1** <span class="roadmap-badge badge-active">Active</span>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
-        Classical NLP Pipeline (Scikit-Learn)
-        - TF-IDF Vectorization · 10k features · bigrams
-        - Logistic Regression · balanced class weights
-        - Streamlit deployment · confidence scoring
-        """
-    )
-
-    st.markdown(
-        '**Milestone 2** <span class="roadmap-badge badge-upcoming">Upcoming</span>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
-        Agentic AI Fact-Checker (LangGraph)
-        - Multi-agent autonomous verification
-        - LLM-powered claim extraction
-        - Real-time source credibility scoring
-        """
-    )
-    st.markdown("---")
 
     # ── User Guide ──
     st.markdown("### 📖 User Guide")
