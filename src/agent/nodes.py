@@ -14,6 +14,7 @@ Node execution order (see graph.py):
 import os
 import re
 import sys
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
 import joblib
 
@@ -223,11 +224,11 @@ def judge_node(state: AgentState) -> AgentState:
         distribution = f"REAL: {real_count}, FAKE: {fake_count}"
         
         if real_count == 3 or fake_count == 3:
-            agreement_level = "High"
+            agreement_level = "High (3/3 agents aligned)"
         elif real_count == 2 or fake_count == 2:
-            agreement_level = "Medium"
+            agreement_level = "Medium (2 vs 1 split)"
         else:
-            agreement_level = "Low"
+            agreement_level = "Low (All agents disagreed / uncertain)"
 
         ml_score = f"{state.get('ml_prediction', 'UNKNOWN')} ({state.get('ml_confidence', 0.0):.1f}%)"
         prompt = build_judge_prompt(
@@ -238,7 +239,21 @@ def judge_node(state: AgentState) -> AgentState:
             agreement_level,
             distribution
         )
-        response = generate_response(prompt)
+        
+        try:
+            judge_llm = ChatNVIDIA(
+                model="meta/llama-3.3-70b-instruct",
+                api_key=os.getenv("NVIDIA_API_KEY"),
+                temperature=0.2,
+                top_p=0.7,
+                max_tokens=1024,
+            )
+            judge_response = judge_llm.invoke(prompt)
+            response = judge_response.content
+        except Exception as e:
+            # fallback to existing LLM (Groq)
+            response = generate_response(prompt)
+            
         return {"judge_response": response, "error": None}
     except Exception as exc:
         return {"judge_response": f"Final Verdict: UNKNOWN\nFinal Confidence: 0\nConsensus Summary: Error {exc}\nDisagreement Reason: Error", "error": str(exc)}
@@ -266,15 +281,15 @@ def _extract_reasoning(text: str) -> str:
 
 def _extract_consensus(text: str) -> str:
     """Extract multi-line consensus."""
-    pattern = rf"Consensus Summary:\s*(.*?)(?=\n\s*Disagreement Reason:|\Z)"
+    pattern = rf"Consensus Summary:\s*(.*?)(?=\n\s*Dominant Agent:|\n\s*Conflict Resolution:|\Z)"
     match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
     if match:
         return match.group(1).strip()
     return ""
 
-def _extract_disagreement(text: str) -> str:
-    """Extract multi-line disagreement reason."""
-    pattern = rf"Disagreement Reason:\s*(.*?)(?=\Z)"
+def _extract_conflict(text: str) -> str:
+    """Extract multi-line conflict resolution."""
+    pattern = rf"Conflict Resolution:\s*(.*?)(?=\Z)"
     match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
     if match:
         return match.group(1).strip()
@@ -295,11 +310,20 @@ def output_node(state: AgentState) -> AgentState:
     retrieved_docs = state.get("retrieved_docs", [])
     rag_real_count = sum(1 for doc in retrieved_docs if "REAL" in doc.get("metadata", {}).get("label", "").upper())
     rag_fake_count = sum(1 for doc in retrieved_docs if "FAKE" in doc.get("metadata", {}).get("label", "").upper())
+    
+    doc_previews = []
+    for doc in retrieved_docs[:2]:
+        raw_text = doc.get("text", "")
+        # Very basic logic to clean out the prompt-formatting of RAG articles for snippet
+        snippet = doc.get("metadata", {}).get("subject", "Reference Article")
+        # take the first 150 chars
+        doc_previews.append(f"{snippet}: {raw_text[:150]}...")
             
     rag_summary = {
         "total_docs": len(retrieved_docs),
         "real_docs": rag_real_count,
         "fake_docs": rag_fake_count,
+        "previews": doc_previews
     }
     
     # 2. Agreement calculation
@@ -336,10 +360,20 @@ def output_node(state: AgentState) -> AgentState:
         risk_factors.append("Conflicting evidence (Mixed RAG signals)")
         
     if agreement_level in ["Medium", "Low"]:
-        risk_factors.append("Weak consensus (Agents disagreed)")
+        risk_factors.append(f"Weak consensus ({'2 vs 1 split' if agreement_level == 'Medium' else 'all mismatched'})")
         
-    if len(retrieved_docs) < 3:
+    if len(retrieved_docs) <= 2:
         risk_factors.append("Limited supporting data (Few docs retrieved)")
+        risk_factors.append("Lack of strong supporting evidence")
+        
+    # Jaccard Check for repetition
+    if len(retrieved_docs) > 1:
+        text1 = set(retrieved_docs[0].get("text", "").lower().split())
+        text2 = set(retrieved_docs[1].get("text", "").lower().split())
+        if text1 and text2:
+            jaccard = len(text1.intersection(text2)) / float(len(text1.union(text2)))
+            if jaccard > 0.4:
+                risk_factors.append("Repetitive or similar retrieved content")
         
     # 4. Assemble Final Dict
     judge_resp = state.get("judge_response", "")
@@ -351,7 +385,8 @@ def output_node(state: AgentState) -> AgentState:
             "verdict": _extract_field(judge_resp, "Final Verdict"),
             "confidence": _extract_field(judge_resp, "Final Confidence"),
             "consensus": _extract_consensus(judge_resp),
-            "disagreement": _extract_disagreement(judge_resp),
+            "dominant_agent": _extract_field(judge_resp, "Dominant Agent"),
+            "conflict": _extract_conflict(judge_resp),
         },
         "agreement": agreement,
         "rag_summary": rag_summary,

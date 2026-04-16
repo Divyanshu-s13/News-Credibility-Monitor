@@ -34,219 +34,172 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-    /* ── Global typography ── */
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
+        color: #e4e4e7;
     }
 
-    /* ── App header hero ── */
+    /* ── Minimalist Hero ── */
     .hero-wrapper {
-        padding: 2rem 0 1.5rem 0;
-        border-bottom: 1px solid rgba(128,128,128,0.15);
-        margin-bottom: 2rem;
+        text-align: center;
+        padding: 2.5rem 0 1.5rem 0;
     }
     .hero-title {
-        font-size: 2.4rem;
+        font-size: 3rem;
         font-weight: 800;
-        letter-spacing: -0.5px;
-        margin: 0 0 6px 0;
-        background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 60%, #f472b6 100%);
+        letter-spacing: -1.5px;
+        margin-bottom: 0.25rem;
+        background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
     .hero-sub {
-        font-size: 0.97rem;
-        opacity: 0.6;
-        margin: 0;
+        font-size: 1rem;
+        color: #a1a1aa;
         font-weight: 400;
+        margin-bottom: 1.5rem;
     }
 
-    /* ── Section headings ── */
+    /* ── Buttons and Inputs overriding Streamlit to look like ChatGPT ── */
+    div[data-baseweb="textarea"] {
+        background-color: rgba(255,255,255,0.02) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 16px !important;
+        transition: all 0.2s ease;
+    }
+    div[data-baseweb="textarea"]:focus-within {
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        box-shadow: 0 0 20px rgba(255,255,255,0.03) !important;
+    }
+    .stButton > button {
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        padding: 0.6rem 2rem !important;
+        transition: transform 0.1s ease;
+    }
+    .stButton > button:active { transform: scale(0.98); }
+
+    /* ── Typography & Headings ── */
     .section-label {
-        font-size: 0.7rem;
+        font-size: 0.70rem;
         font-weight: 700;
         letter-spacing: 1.5px;
         text-transform: uppercase;
-        opacity: 0.45;
-        margin-bottom: 10px;
+        color: #71717a;
+        margin: 2rem 0 0.75rem 0;
     }
 
-    /* ── Mode badge ── */
-    .mode-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 14px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        margin-bottom: 1.2rem;
-    }
-    .mode-classic {
-        background: rgba(251, 191, 36, 0.12);
-        color: #fbbf24;
-        border: 1px solid rgba(251, 191, 36, 0.3);
-    }
-    .mode-agent {
-        background: rgba(167, 139, 250, 0.12);
-        color: #a78bfa;
-        border: 1px solid rgba(167, 139, 250, 0.3);
-    }
-
-    /* ── Word count chip ── */
-    .wc-chip {
-        display: inline-block;
-        padding: 3px 11px;
-        border-radius: 999px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        background: rgba(96, 165, 250, 0.1);
-        color: #60a5fa;
-        border: 1px solid rgba(96, 165, 250, 0.25);
-        margin-top: 6px;
-    }
-
-    /* ── Verdict cards ── */
-    .verdict-card {
-        padding: 28px 28px 22px 28px;
-        border-radius: 16px;
+    /* ── Giant Verdict Card ── */
+    .master-verdict {
         text-align: center;
-        margin: 6px 0 18px 0;
-        transition: box-shadow 0.2s ease;
-    }
-    .verdict-real {
-        background: rgba(34, 197, 94, 0.08);
-        border: 2px solid rgba(34, 197, 94, 0.40);
-        box-shadow: 0 0 32px rgba(34, 197, 94, 0.08);
-    }
-    .verdict-real .vcard-icon  { font-size: 2.4rem; margin-bottom: 8px; }
-    .verdict-real .vcard-title { font-size: 1.5rem; font-weight: 800; color: #22c55e; margin: 0 0 6px 0; }
-    .verdict-real .vcard-sub   { opacity: 0.65; margin: 0; font-size: 0.9rem; }
-
-    .verdict-fake {
-        background: rgba(239, 68, 68, 0.08);
-        border: 2px solid rgba(239, 68, 68, 0.40);
-        box-shadow: 0 0 32px rgba(239, 68, 68, 0.08);
-    }
-    .verdict-fake .vcard-icon  { font-size: 2.4rem; margin-bottom: 8px; }
-    .verdict-fake .vcard-title { font-size: 1.5rem; font-weight: 800; color: #ef4444; margin: 0 0 6px 0; }
-    .verdict-fake .vcard-sub   { opacity: 0.65; margin: 0; font-size: 0.9rem; }
-
-    /* ── Confidence gauge ── */
-    .conf-box {
-        text-align: center;
-        padding: 24px 20px;
-        border-radius: 16px;
-        border: 1px solid rgba(128,128,128,0.18);
-        margin-top: 6px;
-        background: rgba(128,128,128,0.04);
-    }
-    .conf-pct {
-        font-size: 2.8rem;
-        font-weight: 800;
-        line-height: 1.1;
-        margin-bottom: 4px;
-    }
-    .conf-label {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        opacity: 0.45;
-    }
-
-    /* ── Agent output sections ── */
-    .agent-section {
-        padding: 20px 22px;
-        border-radius: 14px;
-        border: 1px solid rgba(128,128,128,0.18);
-        background: rgba(128,128,128,0.04);
-        margin-bottom: 14px;
-    }
-    .agent-section-title {
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 1.3px;
-        text-transform: uppercase;
-        opacity: 0.45;
-        margin-bottom: 10px;
-    }
-    .agent-section-body {
-        font-size: 0.95rem;
-        line-height: 1.75;
-        font-weight: 400;
-    }
-
-    /* ── Agent verdict inline ── */
-    .agent-verdict-real {
-        padding: 22px 24px;
-        border-radius: 14px;
-        background: rgba(34, 197, 94, 0.08);
-        border: 2px solid rgba(34, 197, 94, 0.35);
-        margin-bottom: 14px;
-        text-align: center;
-    }
-    .agent-verdict-fake {
-        padding: 22px 24px;
-        border-radius: 14px;
-        background: rgba(239, 68, 68, 0.08);
-        border: 2px solid rgba(239, 68, 68, 0.35);
-        margin-bottom: 14px;
-        text-align: center;
-    }
-    .agent-verdict-unknown {
-        padding: 22px 24px;
-        border-radius: 14px;
-        background: rgba(251, 191, 36, 0.08);
-        border: 2px solid rgba(251, 191, 36, 0.35);
-        margin-bottom: 14px;
-        text-align: center;
-    }
-
-    /* ── Disclaimer ── */
-    .disclaimer-box {
-        padding: 12px 16px;
-        border-radius: 10px;
-        border: 1px dashed rgba(128,128,128,0.25);
-        font-size: 0.78rem;
-        opacity: 0.55;
-        line-height: 1.6;
-        margin-top: 4px;
-    }
-
-    /* ── Metric cards ── */
-    div[data-testid="stMetric"] {
-        background: transparent;
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        border-radius: 12px;
-        padding: 14px 18px;
-    }
-    div[data-testid="stMetric"] label {
-        font-size: 0.78rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.6;
-    }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 1.55rem !important;
-        font-weight: 700;
-    }
-
-    /* ── Probabilities table ── */
-    .prob-row {
+        padding: 3.5rem 2rem;
+        border-radius: 20px;
+        margin: 1.5rem 0 1rem 0;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
         align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(128,128,128,0.1);
-        font-size: 0.88rem;
+        justify-content: center;
     }
-    .prob-row:last-child { border-bottom: none; }
-    .prob-label { opacity: 0.75; }
-    .prob-val   { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .master-real {
+        background: linear-gradient(180deg, rgba(34,197,94,0.08) 0%, rgba(34,197,94,0.01) 100%);
+        border: 1px solid rgba(34,197,94,0.25);
+        box-shadow: 0 16px 40px -10px rgba(34,197,94,0.15);
+    }
+    .master-fake {
+        background: linear-gradient(180deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.01) 100%);
+        border: 1px solid rgba(239,68,68,0.25);
+        box-shadow: 0 16px 40px -10px rgba(239,68,68,0.15);
+    }
+    .master-unknown {
+        background: linear-gradient(180deg, rgba(161,161,170,0.08) 0%, rgba(161,161,170,0.01) 100%);
+        border: 1px solid rgba(161,161,170,0.25);
+    }
+
+    .mv-verdict {
+        font-size: 3.2rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -1.5px;
+        margin: 0.25rem 0;
+    }
+    .mv-real { color: #4ade80; }
+    .mv-fake { color: #f87171; }
+
+    .mv-confidence {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #e4e4e7;
+        background: rgba(255,255,255,0.08);
+        padding: 4px 16px;
+        border-radius: 999px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .mv-reasoning {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #d4d4d8;
+        max-width: 750px;
+        margin: 0 auto;
+    }
+
+    /* ── Agent Cards ── */
+    .agent-col-card {
+        background: rgba(255,255,255,0.015);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 1.25rem;
+        height: 100%;
+        margin-bottom: 0px;
+    }
+    .agent-header {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #a1a1aa;
+        margin-bottom: 0.25rem;
+    }
+    .agent-v-real { color: #4ade80; font-weight: 700; font-size: 1.1rem; }
+    .agent-v-fake { color: #f87171; font-weight: 700; font-size: 1.1rem; }
+    .agent-v-unknown { color: #fbbf24; font-weight: 700; font-size: 1.1rem; }
+    .agent-short {
+        font-size: 0.9rem;
+        color: #a1a1aa;
+        line-height: 1.5;
+        margin-top: 0.75rem;
+    }
+
+    /* ── Clean Lists (RAG & Risk) ── */
+    .clean-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .clean-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        font-size: 0.95rem;
+        color: #e4e4e7;
+    }
+    .clean-list li:last-child {
+        border-bottom: none;
+    }
+    .risk-text { color: #f87171; }
+    .safe-text { color: #4ade80; }
+
+    hr { border-color: rgba(255,255,255,0.08) !important; }
+
+    /* Override metrics */
+    div[data-testid="stMetric"] { background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; }
+    div[data-testid="stMetric"] label { font-size: 0.75rem !important; opacity: 0.6; }
+    div[data-testid="stMetricValue"] { font-size: 1.5rem !important; font-weight: 700; }
+    
+    </style>
 
     /* ── Per-class metrics table ── */
     .metrics-table {
@@ -430,10 +383,8 @@ with st.sidebar:
 st.markdown(
     """
     <div class="hero-wrapper">
-        <h1 class="hero-title">News Credibility Monitor</h1>
-        <p class="hero-sub">
-            Intelligent credibility analysis powered by Agentic AI — LangGraph · RAG · LLM reasoning
-        </p>
+        <h1 class="hero-title">Verify Fact claims.</h1>
+        <p class="hero-sub">Enter an article below to run our complete Multi-Agent analysis pipeline.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -479,11 +430,9 @@ if metrics:
 # ---------------------------------------------------------------------------
 # Section 2 — Credibility Analyzer
 # ---------------------------------------------------------------------------
-st.markdown("---")
-st.markdown('<p class="section-label">Credibility Analyzer</p>', unsafe_allow_html=True)
 
 # ── Mode selection ──
-col_mode, col_spacer = st.columns([2, 3])
+col_mode, col_spacer = st.columns([1, 5])
 with col_mode:
     analysis_mode = st.radio(
         "Analysis mode",
@@ -492,17 +441,8 @@ with col_mode:
         label_visibility="collapsed",
     )
 
-# Show current mode badge
-if analysis_mode == "Classic ML":
-    st.markdown(
-        '<span class="mode-badge mode-classic">⚡ Classic ML — Logistic Regression + TF‑IDF</span>',
-        unsafe_allow_html=True,
-    )
-else:
-    st.markdown(
-        '<span class="mode-badge mode-agent">🤖 Agentic AI — LangGraph · RAG · Groq LLM</span>',
-        unsafe_allow_html=True,
-    )
+# Remove old big mode badges completely
+st.markdown("<br/>", unsafe_allow_html=True)
 
 # ── Text input ──
 news_text = st.text_area(
@@ -515,17 +455,8 @@ news_text = st.text_area(
     label_visibility="collapsed",
 )
 
-# Word count display
+# Word count logic
 wc = word_count_display(news_text)
-if news_text.strip():
-    wc_color = "#22c55e" if wc >= 50 else "#fbbf24" if wc >= 20 else "#ef4444"
-    st.markdown(
-        f'<span class="wc-chip" style="color:{wc_color};border-color:{wc_color}40;'
-        f'background:{wc_color}12">{wc} words</span>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("")
 
 # ── Short-text warning ──
 if news_text.strip() and wc < 20:
@@ -550,6 +481,9 @@ if not news_text.strip():
 # ═══════════════════════════════════════════════════════════════════════════
 
 if analyze_clicked and news_text.strip():
+    if wc < 50:
+        st.warning("Input text too short. Please provide a longer article (minimum 50 words) so the multi-agent pipeline has enough context to analyze.")
+        st.stop()
 
     st.markdown("---")
     st.markdown('<p class="section-label">Analysis Results</p>', unsafe_allow_html=True)
@@ -576,28 +510,20 @@ if analyze_clicked and news_text.strip():
             res_col, conf_col = st.columns([3, 2])
 
             with res_col:
-                if pred == 0:
-                    st.markdown(
-                        """
-                        <div class="verdict-card verdict-real">
-                            <div class="vcard-icon">✅</div>
-                            <div class="vcard-title">Credible News</div>
-                            <p class="vcard-sub">Language patterns are consistent with verified, factual reporting.</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown(
-                        """
-                        <div class="verdict-card verdict-fake">
-                            <div class="vcard-icon">🚨</div>
-                            <div class="vcard-title">Potentially Fabricated</div>
-                            <p class="vcard-sub">Language patterns resemble those commonly found in unreliable sources.</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                vclass = "master-real" if pred == 0 else "master-fake"
+                icon = "✅" if pred == 0 else "🚨"
+                title = "Credibility Confirmed" if pred == 0 else "Potentially Fabricated"
+                sub = "Language patterns are consistent with factual reporting" if pred == 0 else "Language patterns resemble fabricated content"
+                
+                st.markdown(
+                    f"""
+                    <div class="master-verdict {vclass}" style="padding: 2rem;">
+                        <div class="mv-verdict {'mv-real' if pred==0 else 'mv-fake'}">{title}</div>
+                        <div class="mv-reasoning" style="margin-top:0.5rem;">{sub}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
             with conf_col:
                 pct_color = "#22c55e" if pred == 0 else "#ef4444"
@@ -690,8 +616,6 @@ if analyze_clicked and news_text.strip():
                             elif node_name == "agent_a_node":
                                 st.write("✓ **Agent A (Conservative)** completed analysis.")
                                 st.write("")
-                                st.write("**Step 5: Running Agent B (Skeptical)...**")
-
                             elif node_name == "agent_b_node":
                                 st.write("✓ **Agent B (Skeptical)** completed analysis.")
                                 st.write("")
@@ -731,63 +655,44 @@ if analyze_clicked and news_text.strip():
                     ml_score  = report.get("ml_signal", "")
                     retrieved = report.get("rag_count", 0)
 
-                    # ── 1. Final Verdict (Highlighted) ──
+                    # ── 1. Final Verdict (Master Glowing Card) ──
                     f_verdict = final.get("verdict", "UNKNOWN")
-                    vclass = _verdict_class(f_verdict)
-                    verdict_icon = (
-                        "✅" if "real" in vclass else
-                        "🚨" if "fake" in vclass else "⚠️"
-                    )
+                    vclass = "master-real" if "REAL" in f_verdict.upper() else "master-fake" if "FAKE" in f_verdict.upper() else "master-unknown"
+                    vtext = "mv-real" if "REAL" in f_verdict.upper() else "mv-fake" if "FAKE" in f_verdict.upper() else ""
                     
                     st.markdown(
                         f"""
-                        <div class="{vclass}">
-                            <div style="font-size:2rem;margin-bottom:6px">{verdict_icon}</div>
-                            <div style="font-size:1.05rem;font-weight:700;margin-bottom:6px">Final Verdict (Aggregated Consensus)</div>
-                            <div style="font-size:1.2rem;font-weight:800;margin-bottom:6px">{f_verdict} ({final.get("confidence", "0")}%)</div>
-                            <div style="font-size:0.97rem;line-height:1.65;opacity:0.9;text-align:left;margin-top:14px;padding-top:14px;border-top:1px solid rgba(128,128,128,0.2);">
-                                <strong>Judge Synthesis:</strong><br/>{final.get("consensus", "No consensus provided.")}
-                            </div>
+                        <div class="master-verdict {vclass}">
+                            <div class="mv-verdict {vtext}">{f_verdict}</div>
+                            <div class="mv-confidence">{final.get("confidence", "0")}% Confidence</div>
+                            <div class="mv-reasoning">{final.get("consensus", "No consensus provided.")}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
-                    
-                    if ml_score:
-                        st.markdown(
-                            f'<div style="text-align:center;margin-top:8px"><span class="ml-chip">ML signal: {ml_score} · {retrieved} RAG docs retrieved</span></div>',
-                            unsafe_allow_html=True,
-                        )
 
-                    st.markdown("")
-                    
-                    # ── 2. Agreement Level ──
-                    st.markdown('<p class="section-label">1. Agreement Analysis</p>', unsafe_allow_html=True)
+                    # ── 2. Unified Inline Agreement ──
                     a_level = agreement.get("level", "UNKNOWN")
                     dist = agreement.get("distribution", {})
-                    dist_str = f"REAL: {dist.get('REAL', 0)} | FAKE: {dist.get('FAKE', 0)}"
-                    
-                    border_color = '#3b82f6' if a_level == 'High' else '#eab308' if a_level == 'Medium' else '#ef4444'
+                    dist_str = f"REAL: {dist.get('REAL', 0)} • FAKE: {dist.get('FAKE', 0)}"
 
-                    agreement_html = f"""
-                        <div class="agent-section" style="border-left: 4px solid {border_color}; margin-bottom: 24px;">
-                            <div style="font-weight:700;font-size:1.1rem;margin-bottom:4px;">Agreement Level: {a_level}</div>
-                            <div style="font-size:0.9rem;opacity:0.8;margin-bottom:8px;">Distribution: {dist_str}</div>
-                    """
-                    
-                    if a_level != "High" and final.get("disagreement") and "none" not in final.get("disagreement", "").lower():
-                        disagree_text = final.get("disagreement").replace("\n", "<br/>")
-                        agreement_html += f"""
-                            <div style="font-size:0.9rem;margin-top:12px;padding-top:12px;border-top:1px solid rgba(128,128,128,0.2);">
-                                <strong>Conflicting Viewpoints:</strong><br/>{disagree_text}
-                            </div>
-                        """
-                        
-                    agreement_html += "</div>"
-                    st.markdown(agreement_html, unsafe_allow_html=True)
+                    conflict_str = ""
+                    if "High" not in a_level and final.get("conflict") and "none" not in final.get("conflict", "").lower():
+                        conflict_str = f"&nbsp;|&nbsp; <strong>Conflict Resolution:</strong> {final.get('conflict')}"
 
-                    # ── 3. Agent Cards (A, B, C) ──
-                    st.markdown('<p class="section-label">2. Expert Panel Breakdown</p>', unsafe_allow_html=True)
+                    st.markdown(
+                        f"""
+                        <div style="text-align: center; margin-bottom: 2.5rem; padding: 0 1rem;">
+                            <span style="font-size: 0.85rem; padding: 6px 14px; background: rgba(255,255,255,0.03); border-radius: 99px; color: #a1a1aa; border: 1px solid rgba(255,255,255,0.08); display: inline-block;">
+                                <strong>Agreement:</strong> {a_level} &nbsp;|&nbsp; {dist_str} {conflict_str}
+                            </span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                    
+                    # ── 3. Compact Agent Panel (3 Columns) ──
+                    st.markdown('<div class="section-label">Expert Panel Breakdown</div>', unsafe_allow_html=True)
                     
                     c1, c2, c3 = st.columns(3, gap="medium")
                     
@@ -797,16 +702,18 @@ if analyze_clicked and news_text.strip():
                         [agent_a, agent_b, agent_c]
                     ):
                         with col:
-                            v = agent_data.get("verdict", "UNKNOWN")
+                            v = agent_data.get("verdict", "UNKNOWN").upper()
                             conf = agent_data.get("confidence", "0")
                             reason = agent_data.get("reasoning", "No reasoning returned.")
-                            icon = "✅" if "real" in v.lower() else "🚨" if "fake" in v.lower() else "⚠️"
+                            short_reason = reason.split(".")[0] + "." if "." in reason else reason[:80] + "..."
+                            vcolor = "agent-v-real" if "REAL" in v else "agent-v-fake" if "FAKE" in v else "agent-v-unknown"
                             
                             st.markdown(
                                 f"""
-                                <div class="agent-section" style="margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0;">
-                                    <div class="agent-section-title">{agent_name}</div>
-                                    <div style="font-size:1.1rem; font-weight:700; margin-bottom:8px;">{icon} {v} ({conf}%)</div>
+                                <div class="agent-col-card">
+                                    <div class="agent-header">{agent_name}</div>
+                                    <div class="{vcolor}">{v} <span style="font-size:0.85rem; color:#71717a; font-weight:400;">({conf}%)</span></div>
+                                    <div class="agent-short">{short_reason}</div>
                                 </div>
                                 """,
                                 unsafe_allow_html=True,
@@ -820,16 +727,21 @@ if analyze_clicked and news_text.strip():
                     left_col, right_col = st.columns(2, gap="medium")
                     
                     with left_col:
-                        st.markdown('<p class="section-label">3. Evidence Summary (RAG)</p>', unsafe_allow_html=True)
+                        st.markdown('<div class="section-label">Evidence Summary (RAG)</div>', unsafe_allow_html=True)
+                        previews = rag_sum.get("previews", [])
+                        preview_html = ""
+                        if previews:
+                            preview_html += "<div style='font-size:0.75rem; color:#71717a; text-transform:uppercase; margin:14px 0 6px 0; font-weight:600; letter-spacing:1px;'>Top Snippets</div>"
+                            for p in previews:
+                                preview_html += f"<div style='font-size:0.85rem; color:#a1a1aa; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 10px; margin-bottom: 8px;'><i>{p}</i></div>"
+                            
                         st.markdown(
                             f"""
-                            <div class="agent-section" style="height:100%;">
-                                <div style="font-weight:700;margin-bottom:8px;">Retrieved Documents: {rag_sum.get("total_docs", 0)}</div>
-                                <ul style="margin:0;padding-left:20px;font-size:0.95rem;">
-                                    <li><span style="color:#10b981;font-weight:600;">REAL:</span> {rag_sum.get("real_docs", 0)}</li>
-                                    <li><span style="color:#ef4444;font-weight:600;">FAKE:</span> {rag_sum.get("fake_docs", 0)}</li>
-                                </ul>
-                            </div>
+                            <ul class="clean-list">
+                                <li><strong>Total retrieved documents:</strong> {rag_sum.get("total_docs", 0)}</li>
+                                <li><span class="safe-text">REAL:</span> {rag_sum.get("real_docs", 0)} &nbsp;|&nbsp; <span class="risk-text">FAKE:</span> {rag_sum.get("fake_docs", 0)}</li>
+                            </ul>
+                            {preview_html}
                             """,
                             unsafe_allow_html=True
                         )

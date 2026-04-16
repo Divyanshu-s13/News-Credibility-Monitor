@@ -139,11 +139,13 @@ AGENT C (Neutral Analyst - Balanced Objective Review)
 INSTRUCTIONS
 ═══════════════════════════════════════
 Your task is to compare all three agent outputs, resolve any disagreements, and produce the final, authoritative verdict.
+Keep instructions strictly focused on synthesis, avoiding summarizing the raw data excessively.
 
 Produce your output in EXACTLY the following format:
 
 Final Verdict: <REAL or FAKE>
 Final Confidence: <A single number between 0 and 100>
-Consensus Summary: <Detailed synthesis explaining why the agents agreed or disagreed and how you reached your final decision>
-Disagreement Reason: <If there was any disagreement, explicitly mention the conflicting viewpoints and note the strongest/weakest arguments among them. If the agreement was High (Unanimous), explicitly output "None, all agents agreed.">
+Consensus Summary: <Explanation of how you synthesized the evidence to reach the final verdict>
+Dominant Agent: <Specify WHICH agent (A, B, or C) had the strongest influence on the decision and WHY the others were deemed less reliable>
+Conflict Resolution: <Explain exactly how you handled any conflicting viewpoints between the agents. If the agreement was High (Unanimous), explicitly output "None, all agents agreed.">
 """
