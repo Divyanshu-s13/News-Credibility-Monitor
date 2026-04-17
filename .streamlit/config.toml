@@ -1,9 +1,0 @@
-[server]
-# Use poll-based watcher instead of the default inotify/fsevents watcher.
-# This prevents Streamlit from deep-scanning installed packages (like
-# `transformers`) that import optional dependencies (torchvision) which
-# may not be installed, causing noisy ModuleNotFoundError warnings.
-fileWatcherType = "poll"
-
-[browser]
-gatherUsageStats = false

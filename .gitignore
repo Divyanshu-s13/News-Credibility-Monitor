@@ -22,3 +22,8 @@ data/processed/
 chroma_db/
 
 test/
+
+# Backend specific
+backend/.venv/
+backend/__pycache__/
+backend/.env

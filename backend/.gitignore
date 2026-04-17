@@ -1,0 +1,10 @@
+# Backend specific ignore patterns
+backend/.venv/
+backend/__pycache__/
+backend/.env
+backend/.DS_Store
+
+data/interim/
+data/processed/
+
+test/
