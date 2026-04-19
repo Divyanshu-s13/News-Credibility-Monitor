@@ -1,8 +1,10 @@
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 # Load .env from the backend directory (sibling of this file).
 load_dotenv()
@@ -24,9 +26,10 @@ def get_run_agent():
 app = FastAPI(title="News Credibility Monitor API")
 
 # CORS — allow the deployed frontend (Vercel) plus local dev to hit the API.
-# Set CORS_ALLOW_ORIGINS in the Render dashboard as a comma-separated list,
-# e.g. "https://your-app.vercel.app,https://your-app-git-main.vercel.app".
+# The production Vercel URL is always allowed. Extra origins can be added via
+# the CORS_ALLOW_ORIGINS env var in the Render dashboard (comma-separated).
 _default_origins = [
+    "https://news-credibility-monitor.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
@@ -35,7 +38,7 @@ _env_origins = [
     for origin in os.getenv("CORS_ALLOW_ORIGINS", "").split(",")
     if origin.strip()
 ]
-allow_origins = _env_origins or _default_origins
+allow_origins = _env_origins + _default_origins if _env_origins else _default_origins
 
 # Optional: regex to match Vercel preview deployments
 # (e.g. https://news-credibility-monitor-git-*-yourname.vercel.app).
@@ -51,21 +54,29 @@ app.add_middleware(
 )
 
 
+# ── Request / response models ──
+
+class AnalyzeRequest(BaseModel):
+    text: str
+    mode: str = "agentic"
+
+
 @app.get("/")
 def home():
     return {"status": "ok", "message": "News Credibility Monitor API is running"}
 
 
 @app.post("/analyze")
-def analyze(data: dict):
-    text = data.get("text", "")
-
-    if not text or len(text.split()) < 50:
-        return {"error": "Text too short. Please provide at least 50 words for analysis."}
+def analyze(data: AnalyzeRequest):
+    if not data.text.strip() or len(data.text.split()) < 50:
+        raise HTTPException(
+            status_code=422,
+            detail="Text too short. Please provide at least 50 words for analysis.",
+        )
 
     try:
         # Lazy-load the agent graph so cold-boot fits in Render's 512Mi free tier.
-        result = get_run_agent()(text)
+        result = get_run_agent()(data.text)
         return result
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})

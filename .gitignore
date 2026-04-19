@@ -32,6 +32,5 @@ backend/.env.local
 # Frontend env (kept inside frontend/, never committed)
 frontend/.env
 frontend/.env.local
-frontend/.env.production
 
 .claude/

@@ -239,7 +239,7 @@ function App() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data?.error || 'The analysis request failed. Please try again.')
+        throw new Error(data?.detail || data?.error || 'The analysis request failed. Please try again.')
       }
 
       setPendingResult(normalizeAnalysisResult(data, mode))
